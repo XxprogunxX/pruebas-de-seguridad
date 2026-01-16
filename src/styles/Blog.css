@@ -199,3 +199,103 @@
 .btn-eliminar:hover {
   background-color: #c82333;
 }
+
+/* ============ RESPONSIVE - MÓVIL ============ */
+@media (max-width: 768px) {
+  .blog-container {
+    padding: 1rem;
+  }
+
+  .blog-container h1 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .btn-agregar {
+    width: 100%;
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .formulario-articulo {
+    padding: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .formulario-articulo h3 {
+    font-size: 1.1rem;
+  }
+
+  .form-buttons {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .btn-guardar, .btn-cancelar {
+    width: 100%;
+  }
+
+  .articulos-lista {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .articulo-foto {
+    height: 150px;
+  }
+
+  .articulo-contenido {
+    padding: 1rem;
+  }
+
+  .articulo-contenido h3 {
+    font-size: 1.1rem;
+  }
+
+  .articulo-precio {
+    font-size: 1.2rem;
+  }
+
+  .articulo-acciones {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .btn-editar, .btn-eliminar {
+    width: 100%;
+    padding: 0.6rem;
+    font-size: 0.85rem;
+  }
+
+  .mensaje-login {
+    padding: 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .blog-container {
+    padding: 0.5rem;
+  }
+
+  .blog-container h1 {
+    font-size: 1.3rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .formulario-articulo {
+    padding: 0.8rem;
+  }
+
+  .articulos-lista {
+    gap: 0.8rem;
+  }
+
+  .articulo-foto {
+    height: 120px;
+  }
+
+  .articulo-contenido {
+    padding: 0.8rem;
+  }
+}

@@ -98,7 +98,93 @@
   color: #666;
 }
 
-.btn-toggle {
+/* ============ RESPONSIVE - MÓVIL ============ */
+@media (max-width: 768px) {
+  .login-container {
+    padding: 1rem;
+    min-height: 50vh;
+  }
+
+  .login-form {
+    padding: 2rem 1.5rem;
+    max-width: 100%;
+  }
+
+  .login-form h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-group label {
+    font-size: 0.9rem;
+  }
+
+  .form-group input {
+    padding: 0.6rem;
+    font-size: 0.95rem;
+  }
+
+  .btn-login {
+    padding: 0.6rem;
+    font-size: 0.9rem;
+  }
+
+  .error {
+    padding: 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  .login-toggle {
+    margin-top: 1rem;
+    padding-top: 1rem;
+  }
+
+  .login-toggle p {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-container {
+    padding: 0.5rem;
+  }
+
+  .login-form {
+    padding: 1.5rem 1rem;
+  }
+
+  .login-form h2 {
+    font-size: 1.1rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .form-group {
+    margin-bottom: 0.8rem;
+  }
+
+  .form-group label {
+    font-size: 0.85rem;
+  }
+
+  .form-group input {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .btn-login {
+    padding: 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  .error {
+    padding: 0.6rem;
+    font-size: 0.8rem;
+  }
+}.btn-toggle {
   background: none;
   border: none;
   color: #667eea;
