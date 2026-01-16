@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { collection, getDocs, updateDoc, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { AuthContext } from '../context/AuthContext';
+import bcrypt from 'bcryptjs';
 import '../styles/Admin.css';
 
 export const Admin = () => {
@@ -122,10 +123,13 @@ export const Admin = () => {
       // Crear ID único
       const uid = Date.now().toString() + Math.random().toString(36).substr(2, 9);
 
+      // Encriptar contraseña con bcrypt
+      const hashedPassword = await bcrypt.hash(nuevoUsuario.password, 10);
+
       // Guardar en Firestore
       await setDoc(doc(db, 'usuarios', uid), {
         email: emailSanitizado,
-        password: nuevoUsuario.password,
+        password: hashedPassword,
         nombre: nombreSanitizado,
         rol: nuevoUsuario.rol,
         createdAt: new Date(),

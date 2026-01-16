@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { collection, query, where, getDocs, setDoc, doc } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import bcrypt from 'bcryptjs';
 
 export const AuthContext = createContext();
 
@@ -8,6 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [usuario, setUsuario] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
+  const [intentosLogin, setIntentosLogin] = useState({});
 
   // Función para sanitizar inputs y prevenir XSS
   const sanitizeInput = (input) => {
@@ -33,7 +35,14 @@ export const AuthProvider = ({ children }) => {
     if (usuarioGuardado) {
       try {
         const userData = JSON.parse(usuarioGuardado);
-        setUsuario(userData);
+        // Validar que el token no haya expirado (24 horas)
+        if (userData.tokenExpira && new Date().getTime() < userData.tokenExpira) {
+          setUsuario(userData);
+        } else {
+          // Token expirado, limpiar sesión
+          localStorage.removeItem('usuario');
+          console.log('Sesión expirada');
+        }
       } catch (err) {
         console.error('Error cargando sesión:', err);
         localStorage.removeItem('usuario');
@@ -84,20 +93,27 @@ export const AuthProvider = ({ children }) => {
       // Crear ID único
       const uid = Date.now().toString() + Math.random().toString(36).substr(2, 9);
 
+      // Encriptar contraseña con bcrypt (salt rounds = 10)
+      const hashedPassword = await bcrypt.hash(contraseña, 10);
+
       // Guardar usuario en Firestore
       await setDoc(doc(db, 'usuarios', uid), {
         email: emailSanitizado,
-        password: contraseña,
+        password: hashedPassword,
         nombre: nombreSanitizado,
         rol: 'usuario',
         createdAt: new Date()
       });
 
+      // Crear token de sesión con expiración de 24 horas
+      const tokenExpira = new Date().getTime() + (24 * 60 * 60 * 1000);
+      
       const nuevoUsuario = {
         uid: uid,
         email: emailSanitizado,
         nombre: nombreSanitizado,
-        rol: 'usuario'
+        rol: 'usuario',
+        tokenExpira: tokenExpira
       };
 
       setUsuario(nuevoUsuario);
@@ -129,12 +145,33 @@ export const AuthProvider = ({ children }) => {
         return { success: false, error: 'Email inválido' };
       }
 
+      // Rate limiting: verificar intentos de login
+      const ahora = new Date().getTime();
+      const intentosPrevios = intentosLogin[emailSanitizado] || { count: 0, lastAttempt: 0 };
+      
+      // Si han pasado más de 15 minutos, resetear contador
+      if (ahora - intentosPrevios.lastAttempt > 15 * 60 * 1000) {
+        intentosPrevios.count = 0;
+      }
+      
+      // Bloquear si hay más de 5 intentos fallidos
+      if (intentosPrevios.count >= 5) {
+        const tiempoEspera = Math.ceil((15 * 60 * 1000 - (ahora - intentosPrevios.lastAttempt)) / 60000);
+        setError(`Demasiados intentos fallidos. Espera ${tiempoEspera} minutos`);
+        return { success: false, error: `Demasiados intentos fallidos. Espera ${tiempoEspera} minutos` };
+      }
+
       // Buscar usuario por email
       const usersRef = collection(db, 'usuarios');
       const q = query(usersRef, where('email', '==', emailSanitizado));
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
+        // Incrementar intentos fallidos
+        setIntentosLogin({
+          ...intentosLogin,
+          [emailSanitizado]: { count: intentosPrevios.count + 1, lastAttempt: ahora }
+        });
         setError('Usuario no encontrado');
         return { success: false, error: 'Usuario no encontrado' };
       }
@@ -142,17 +179,34 @@ export const AuthProvider = ({ children }) => {
       const userDoc = querySnapshot.docs[0];
       const userData = userDoc.data();
 
-      // Verificar contraseña
-      if (userData.password !== contraseña) {
+      // Verificar contraseña con bcrypt
+      const passwordValida = await bcrypt.compare(contraseña, userData.password);
+      
+      if (!passwordValida) {
+        // Incrementar intentos fallidos
+        setIntentosLogin({
+          ...intentosLogin,
+          [emailSanitizado]: { count: intentosPrevios.count + 1, lastAttempt: ahora }
+        });
         setError('Contraseña incorrecta');
         return { success: false, error: 'Contraseña incorrecta' };
       }
+
+      // Login exitoso - resetear intentos y crear token con expiración
+      setIntentosLogin({
+        ...intentosLogin,
+        [emailSanitizado]: { count: 0, lastAttempt: 0 }
+      });
+      
+      // Token válido por 24 horas
+      const tokenExpira = new Date().getTime() + (24 * 60 * 60 * 1000);
 
       const usuarioLogueado = {
         uid: userDoc.id,
         email: userData.email,
         nombre: userData.nombre,
-        rol: userData.rol || 'usuario'
+        rol: userData.rol || 'usuario',
+        tokenExpira: tokenExpira
       };
 
       setUsuario(usuarioLogueado);
