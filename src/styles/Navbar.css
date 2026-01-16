@@ -1,0 +1,101 @@
+.navbar {
+  background-color: #282c34;
+  padding: 1rem 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.navbar-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar-logo {
+  color: #61dafb;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.nav-menu {
+  display: flex;
+  list-style: none;
+  gap: 2rem;
+  align-items: center;
+}
+
+.nav-item {
+  margin: 0;
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.nav-link:hover {
+  color: #61dafb;
+}
+
+.nav-usuario {
+  color: #61dafb;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.nav-rol {
+  display: inline-block;
+  background-color: #667eea;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.nav-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 1rem;
+  transition: all 0.3s;
+}
+
+.nav-button.login {
+  background-color: #61dafb;
+  color: #282c34;
+  font-weight: bold;
+}
+
+.nav-button.login:hover {
+  background-color: #4fa8c5;
+}
+
+.nav-button.admin {
+  background-color: #667eea;
+  color: white;
+  font-weight: bold;
+}
+
+.nav-button.admin:hover {
+  background-color: #5568d3;
+}
+
+.nav-button.logout {
+  background-color: #ff6b6b;
+  color: white;
+}
+
+.nav-button.logout:hover {
+  background-color: #ee5a52;
+}

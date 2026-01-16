@@ -1,0 +1,129 @@
+.admin-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.admin-container h1 {
+  text-align: center;
+  color: #282c34;
+  margin-bottom: 1rem;
+}
+
+.admin-user {
+  text-align: center;
+  color: #666;
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+}
+
+.admin-alert {
+  background-color: #fee;
+  border: 2px solid #c33;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  color: #c33;
+}
+
+.admin-alert h2 {
+  margin: 0 0 1rem 0;
+}
+
+.admin-error {
+  background-color: #fee;
+  color: #c33;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 2rem;
+  border-left: 4px solid #c33;
+}
+
+.usuarios-table {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.usuarios-table h2 {
+  color: #282c34;
+  margin-bottom: 1.5rem;
+}
+
+.usuarios-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.usuarios-table th {
+  background-color: #f5f5f5;
+  padding: 1rem;
+  text-align: left;
+  font-weight: bold;
+  border-bottom: 2px solid #ddd;
+  color: #282c34;
+}
+
+.usuarios-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.usuarios-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+.rol-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.rol-badge.rol-admin {
+  background-color: #667eea;
+  color: white;
+}
+
+.rol-badge.rol-usuario {
+  background-color: #28a745;
+  color: white;
+}
+
+.rol-select {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.rol-select:hover:not(:disabled) {
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+.rol-select:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+  color: #999;
+}
+
+@media (max-width: 768px) {
+  .usuarios-table {
+    padding: 1rem;
+  }
+
+  .usuarios-table th,
+  .usuarios-table td {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .usuarios-table table {
+    font-size: 0.85rem;
+  }
+}

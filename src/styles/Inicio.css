@@ -1,0 +1,136 @@
+.inicio {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.inicio-hero {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px;
+  margin-bottom: 3rem;
+}
+
+.inicio-hero h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.inicio-hero p {
+  font-size: 1.3rem;
+}
+
+.inicio-usuario-info {
+  background: #f0f4ff;
+  border-left: 4px solid #667eea;
+  padding: 1.5rem;
+  border-radius: 4px;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.inicio-usuario-info p {
+  margin: 0.5rem 0;
+  color: #333;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.role-badge.role-admin {
+  background-color: #ff6b6b;
+  color: white;
+}
+
+.role-badge.role-usuario {
+  background-color: #4ecdc4;
+  color: white;
+}
+
+.inicio-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.feature {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  text-align: center;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.feature:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.feature h3 {
+  color: #667eea;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.feature p {
+  color: #666;
+}
+
+.feature.admin-feature {
+  border: 2px solid #ff6b6b;
+}
+
+.feature.admin-feature h3 {
+  color: #ff6b6b;
+}
+
+.inicio-info {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.inicio-info h2 {
+  color: #282c34;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.info-step {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f9f9f9;
+  border-radius: 4px;
+  border-left: 4px solid #667eea;
+}
+
+.info-step h4 {
+  color: #667eea;
+  margin-top: 0;
+}
+
+.info-step ol {
+  margin: 1rem 0;
+  padding-left: 2rem;
+  color: #333;
+}
+
+.info-step li {
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+
+.info-step strong {
+  color: #282c34;
+}
+
