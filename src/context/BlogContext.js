@@ -25,6 +25,18 @@ export const BlogProvider = ({ children }) => {
 
   const bucket = process.env.REACT_APP_SUPABASE_BUCKET || 'imagenes';
 
+  // Función para sanitizar inputs y prevenir XSS
+  const sanitizeInput = (input) => {
+    if (typeof input !== 'string') return input;
+    return input
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;')
+      .replace(/\//g, '&#x2F;')
+      .trim();
+  };
+
   const uploadImagen = async (file) => {
     if (!file) return null;
     const nombreLimpio = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
@@ -102,13 +114,34 @@ export const BlogProvider = ({ children }) => {
     }
     
     setError(null);
+
+    // Sanitizar inputs
+    const nombreSanitizado = sanitizeInput(articulo.nombre);
+    const precioSanitizado = parseFloat(articulo.precio);
+
+    // Validaciones
+    if (!nombreSanitizado || nombreSanitizado.length < 3) {
+      setError('El nombre debe tener al menos 3 caracteres');
+      return;
+    }
+
+    if (isNaN(precioSanitizado) || precioSanitizado < 0) {
+      setError('El precio debe ser un número válido');
+      return;
+    }
+
+    if (nombreSanitizado.length > 100) {
+      setError('El nombre es demasiado largo (máximo 100 caracteres)');
+      return;
+    }
+
     let fotoUrl = articulo.foto || null;
     if (articulo.archivo) {
       fotoUrl = await uploadImagen(articulo.archivo);
     }
     const payload = {
-      nombre: articulo.nombre,
-      precio: articulo.precio,
+      nombre: nombreSanitizado,
+      precio: precioSanitizado,
       foto: fotoUrl,
       userId: usuario.uid,
       userEmail: usuario.email,
@@ -121,12 +154,6 @@ export const BlogProvider = ({ children }) => {
   };
 
   const modificarArticulo = async (id, datosActualizados) => {
-    if (!usuario) {
-      setError('Debes iniciar sesión');
-      return;
-    }
-
-    // Verificar permisos
     const articulo = articulos.find(art => art.id === id);
     if (!articulo) {
       setError('Artículo no encontrado');
@@ -141,13 +168,31 @@ export const BlogProvider = ({ children }) => {
       return;
     }
 
+    // Sanitizar inputs
+    const nombreSanitizado = sanitizeInput(datosActualizados.nombre);
+    const precioSanitizado = parseFloat(datosActualizados.precio);
+
+    // Validaciones
+    if (!nombreSanitizado || nombreSanitizado.length < 3) {
+      setError('El nombre debe tener al menos 3 caracteres');
+      return;
+    }
+
+    if (isNaN(precioSanitizado) || precioSanitizado < 0) {
+      setError('El precio debe ser un número válido');
+      return;
+    }
+
     setError(null);
     let fotoUrl = datosActualizados.foto;
     if (datosActualizados.archivo) {
       fotoUrl = await uploadImagen(datosActualizados.archivo);
     }
-    const payload = { ...datosActualizados, foto: fotoUrl };
-    delete payload.archivo;
+    const payload = { 
+      nombre: nombreSanitizado,
+      precio: precioSanitizado,
+      foto: fotoUrl 
+    };
 
     const ref = doc(db, 'articulos', id);
     await updateDoc(ref, payload);

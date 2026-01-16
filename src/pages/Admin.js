@@ -18,6 +18,24 @@ export const Admin = () => {
     rol: 'usuario'
   });
 
+  // Función para sanitizar inputs
+  const sanitizeInput = (input) => {
+    if (typeof input !== 'string') return input;
+    return input
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;')
+      .replace(/\//g, '&#x2F;')
+      .trim();
+  };
+
+  // Validar formato de email
+  const validarEmail = (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
+
   useEffect(() => {
     if (esAdmin) {
       cargarUsuarios();
@@ -64,8 +82,23 @@ export const Admin = () => {
     setError(null);
     setExito(null);
 
-    if (!nuevoUsuario.email || !nuevoUsuario.password || !nuevoUsuario.nombre) {
+    // Sanitizar inputs
+    const emailSanitizado = sanitizeInput(nuevoUsuario.email).toLowerCase();
+    const nombreSanitizado = sanitizeInput(nuevoUsuario.nombre);
+
+    // Validaciones
+    if (!emailSanitizado || !nuevoUsuario.password || !nombreSanitizado) {
       setError('Completa todos los campos');
+      return;
+    }
+
+    if (!validarEmail(emailSanitizado)) {
+      setError('Email inválido');
+      return;
+    }
+
+    if (nombreSanitizado.length < 2 || nombreSanitizado.length > 50) {
+      setError('El nombre debe tener entre 2 y 50 caracteres');
       return;
     }
 
@@ -79,7 +112,7 @@ export const Admin = () => {
       
       // Verificar si el email ya existe
       const querySnapshot = await getDocs(collection(db, 'usuarios'));
-      const emailExiste = querySnapshot.docs.some(doc => doc.data().email === nuevoUsuario.email);
+      const emailExiste = querySnapshot.docs.some(doc => doc.data().email === emailSanitizado);
       
       if (emailExiste) {
         setError('Este email ya está registrado');
@@ -91,15 +124,15 @@ export const Admin = () => {
 
       // Guardar en Firestore
       await setDoc(doc(db, 'usuarios', uid), {
-        email: nuevoUsuario.email,
+        email: emailSanitizado,
         password: nuevoUsuario.password,
-        nombre: nuevoUsuario.nombre,
+        nombre: nombreSanitizado,
         rol: nuevoUsuario.rol,
         createdAt: new Date(),
         createdBy: usuario.email
       });
 
-      setExito(`Usuario ${nuevoUsuario.email} creado exitosamente como ${nuevoUsuario.rol}`);
+      setExito(`Usuario ${emailSanitizado} creado exitosamente como ${nuevoUsuario.rol}`);
       setNuevoUsuario({ email: '', password: '', nombre: '', rol: 'usuario' });
       setMostrarFormulario(false);
       
