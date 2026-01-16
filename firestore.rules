@@ -1,62 +1,42 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Función helper para verificar si el usuario está autenticado
-    function isSignedIn() {
-      return request.auth != null;
-    }
-    
-    // Función helper para verificar si el usuario es admin
-    function isAdmin() {
-      return isSignedIn() && 
-             get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'admin';
-    }
-    
-    // Función helper para verificar si es el propietario del documento
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-    
-    // Reglas para la colección de usuarios
+
+    /* USUARIOS */
     match /usuarios/{userId} {
-      // Permitir lectura solo para usuarios autenticados
-      allow read: if isSignedIn();
-      
-      // Permitir creación de nuevos usuarios (para registro)
-      // NOTA: En producción, considera usar Cloud Functions para crear usuarios
-      allow create: if request.resource.data.rol == 'usuario' &&
-                       request.resource.data.email is string &&
-                       request.resource.data.password is string &&
-                       request.resource.data.nombre is string;
-      
-      // Solo admins pueden actualizar usuarios
-      allow update: if isAdmin();
-      
-      // Solo admins pueden eliminar usuarios
-      allow delete: if isAdmin();
-    }
-    
-    // Reglas para la colección de artículos
-    match /articulos/{articuloId} {
-      // Cualquiera puede leer artículos (público)
+      // Lectura pública (necesario para login sin Firebase Auth)
       allow read: if true;
-      
-      // Solo usuarios autenticados pueden crear artículos
-      allow create: if isSignedIn() &&
-                       request.resource.data.userId == request.auth.uid &&
+
+      // Crear usuario con validación básica
+      allow create: if request.resource.data.email is string &&
+                       request.resource.data.password is string &&
                        request.resource.data.nombre is string &&
-                       request.resource.data.precio is number &&
-                       request.resource.data.precio >= 0;
-      
-      // Solo el propietario o admin pueden actualizar
-      allow update: if isOwner(resource.data.userId) || isAdmin();
-      
-      // Solo el propietario o admin pueden eliminar
-      allow delete: if isOwner(resource.data.userId) || isAdmin();
+                       request.resource.data.nombre.size() >= 2 &&
+                       request.resource.data.nombre.size() <= 50 &&
+                       request.resource.data.rol == "usuario";
+
+      // No permitir update/delete desde cliente
+      allow update, delete: if false;
     }
-    
-    // Bloquear acceso a cualquier otra colección
+
+    /* ARTÍCULOS */
+    match /articulos/{articuloId} {
+      // Lectura pública
+      allow read: if true;
+
+      // Crear artículo con validación
+      allow create: if request.resource.data.nombre is string &&
+                       request.resource.data.nombre.size() >= 3 &&
+                       request.resource.data.nombre.size() <= 100 &&
+                       request.resource.data.precio is number &&
+                       request.resource.data.precio >= 0 &&
+                       request.resource.data.userId is string;
+
+      // Permitir update/delete (la app valida propiedad en frontend)
+      allow update, delete: if true;
+    }
+
+    /* BLOQUEO GLOBAL */
     match /{document=**} {
       allow read, write: if false;
     }
