@@ -177,10 +177,40 @@ export const BlogProvider = ({ children }) => {
       return;
     }
 
-    setError(null);
-    const ref = doc(db, 'articulos', id);
-    await deleteDoc(ref);
-    setArticulos((prev) => prev.filter((art) => art.id !== id));
+    try {
+      setError(null);
+      
+      // Eliminar imagen de Supabase Storage si existe
+      if (articulo.foto) {
+        try {
+          // Extraer el nombre del archivo de la URL
+          const urlParts = articulo.foto.split('/');
+          const nombreArchivo = urlParts[urlParts.length - 1];
+          
+          if (nombreArchivo) {
+            const { error: errDelete } = await supabase.storage
+              .from(bucket)
+              .remove([nombreArchivo]);
+            
+            if (errDelete) {
+              console.warn('Error eliminando imagen de Supabase:', errDelete);
+              // Continuar de todas formas, no es un error crítico
+            }
+          }
+        } catch (errImg) {
+          console.warn('Error procesando eliminación de imagen:', errImg);
+          // Continuar de todas formas
+        }
+      }
+      
+      // Eliminar documento de Firestore
+      const ref = doc(db, 'articulos', id);
+      await deleteDoc(ref);
+      setArticulos((prev) => prev.filter((art) => art.id !== id));
+    } catch (err) {
+      console.error('Error eliminando artículo:', err);
+      setError('No se pudo eliminar el artículo');
+    }
   };
 
   const value = {
