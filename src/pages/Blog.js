@@ -5,7 +5,7 @@ import '../styles/Blog.css';
 
 export const Blog = () => {
   const { articulos, agregarArticulo, modificarArticulo, eliminarArticulo, cargando, error, setError } = useContext(BlogContext);
-  const { estaAutenticado } = useContext(AuthContext);
+  const { estaAutenticado, usuario } = useContext(AuthContext);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [editandoId, setEditandoId] = useState(null);
   const [formData, setFormData] = useState({ nombre: '', precio: '', foto: '' });
@@ -51,6 +51,12 @@ export const Blog = () => {
   return (
     <div className="blog-container">
       <h1>Blog de Artículos</h1>
+      {usuario && (
+        <p style={{textAlign: 'center', color: '#666', marginBottom: '10px'}}>
+          Usuario: {usuario.email} | Rol: <strong>{usuario.rol}</strong>
+          {usuario.rol === 'admin' && ' (Puedes ver y eliminar todas las publicaciones)'}
+        </p>
+      )}
       {error && <p className="mensaje-login" style={{color: '#c33', background:'#fee', border:'1px solid #f2c2c2'}}>{error}</p>}
       
       {estaAutenticado ? (
@@ -86,18 +92,9 @@ export const Blog = () => {
                   step="0.01"
                 />
               </div>
+              
               <div className="form-group">
-                <label>URL Foto:</label>
-                <input
-                  type="text"
-                  name="foto"
-                  value={formData.foto}
-                  onChange={handleInputChange}
-                  placeholder="https://ejemplo.com/foto.jpg"
-                />
-              </div>
-              <div className="form-group">
-                <label>Subir imagen (Supabase Storage):</label>
+                <label>Subir imagen :</label>
                 <input
                   type="file"
                   accept="image/*"
@@ -125,34 +122,45 @@ export const Blog = () => {
         ) : articulos.length === 0 ? (
           <p className="sin-articulos">No hay artículos aún</p>
         ) : (
-          articulos.map(articulo => (
-            <div key={articulo.id} className="articulo-card">
-              {articulo.foto && (
-                <img src={articulo.foto} alt={articulo.nombre} className="articulo-foto" />
-              )}
-              <div className="articulo-contenido">
-                <h3>{articulo.nombre}</h3>
-                <p className="articulo-precio">${articulo.precio}</p>
-                <p className="articulo-fecha">{articulo.fecha || 'Sin fecha'}</p>
-                {estaAutenticado && (
-                  <div className="articulo-acciones">
-                    <button 
-                      className="btn-editar"
-                      onClick={() => handleEditar(articulo)}
-                    >
-                      Modificar
-                    </button>
-                    <button 
-                      className="btn-eliminar"
-                      onClick={() => eliminarArticulo(articulo.id)}
-                    >
-                      Eliminar
-                    </button>
-                  </div>
+          articulos.map(articulo => {
+            const esAdmin = usuario?.rol === 'admin';
+            const esPropietario = articulo.userId === usuario?.uid;
+            const puedeEditar = esAdmin || esPropietario;
+            
+            return (
+              <div key={articulo.id} className="articulo-card">
+                {articulo.foto && (
+                  <img src={articulo.foto} alt={articulo.nombre} className="articulo-foto" />
                 )}
+                <div className="articulo-contenido">
+                  <h3>{articulo.nombre}</h3>
+                  <p className="articulo-precio">${articulo.precio}</p>
+                  <p className="articulo-fecha">{articulo.fecha || 'Sin fecha'}</p>
+                  {articulo.userEmail && (
+                    <p style={{fontSize: '0.85em', color: '#888', marginTop: '5px'}}>
+                      Publicado por: {articulo.userEmail}
+                    </p>
+                  )}
+                  {estaAutenticado && puedeEditar && (
+                    <div className="articulo-acciones">
+                      <button 
+                        className="btn-editar"
+                        onClick={() => handleEditar(articulo)}
+                      >
+                        Modificar
+                      </button>
+                      <button 
+                        className="btn-eliminar"
+                        onClick={() => eliminarArticulo(articulo.id)}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>

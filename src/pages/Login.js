@@ -31,7 +31,7 @@ export const Login = () => {
       setCargando(false);
       return;
     }
-    if (email.length > 20) {
+    if (email.length > 60) {
         setError('El email es demasiado largo');
         setCargando(false);
         return;

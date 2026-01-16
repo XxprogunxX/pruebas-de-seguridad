@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 import {
   collection,
   addDoc,
@@ -8,14 +8,17 @@ import {
   doc,
   serverTimestamp,
   query,
-  orderBy
+  orderBy,
+  where
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { supabase } from '../config/supabase';
+import { AuthContext } from './AuthContext';
 
 export const BlogContext = createContext();
 
 export const BlogProvider = ({ children }) => {
+  const { usuario } = useContext(AuthContext);
   const [articulos, setArticulos] = useState([]);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
@@ -38,14 +41,40 @@ export const BlogProvider = ({ children }) => {
       setCargando(true);
       setError(null);
       try {
-        // Intentar cargar con ordenamiento, si falla, cargar sin él
         let snapshot;
-        try {
-          const q = query(collection(db, 'articulos'), orderBy('createdAt', 'desc'));
-          snapshot = await getDocs(q);
-        } catch (ordenErr) {
-          console.warn('Ordenamiento no disponible, cargando sin orden:', ordenErr);
-          snapshot = await getDocs(collection(db, 'articulos'));
+        
+        // Si hay usuario logueado y es usuario normal, carga solo sus artículos
+        // Si es admin, carga todos
+        // Si NO hay usuario logueado, carga todos los artículos para que los vea
+        const esAdmin = usuario?.rol === 'admin';
+        const tieneUsuario = !!usuario;
+
+        if (tieneUsuario && !esAdmin) {
+          // Usuario logueado normal: solo sus artículos
+          try {
+            const q = query(
+              collection(db, 'articulos'),
+              where('userId', '==', usuario.uid),
+              orderBy('createdAt', 'desc')
+            );
+            snapshot = await getDocs(q);
+          } catch (ordenErr) {
+            console.warn('Ordenamiento no disponible, cargando sin orden:', ordenErr);
+            const q = query(
+              collection(db, 'articulos'),
+              where('userId', '==', usuario.uid)
+            );
+            snapshot = await getDocs(q);
+          }
+        } else {
+          // Sin usuario o es admin: carga todos los artículos
+          try {
+            const q = query(collection(db, 'articulos'), orderBy('createdAt', 'desc'));
+            snapshot = await getDocs(q);
+          } catch (ordenErr) {
+            console.warn('Ordenamiento no disponible, cargando sin orden:', ordenErr);
+            snapshot = await getDocs(collection(db, 'articulos'));
+          }
         }
         
         const lista = snapshot.docs.map((d) => {
@@ -64,9 +93,14 @@ export const BlogProvider = ({ children }) => {
     };
 
     cargarArticulos();
-  }, []);
+  }, [usuario]);
 
   const agregarArticulo = async (articulo) => {
+    if (!usuario) {
+      setError('Debes iniciar sesión para agregar artículos');
+      return;
+    }
+    
     setError(null);
     let fotoUrl = articulo.foto || null;
     if (articulo.archivo) {
@@ -76,6 +110,8 @@ export const BlogProvider = ({ children }) => {
       nombre: articulo.nombre,
       precio: articulo.precio,
       foto: fotoUrl,
+      userId: usuario.uid,
+      userEmail: usuario.email,
       createdAt: serverTimestamp(),
       fecha: new Date().toLocaleDateString()
     };
@@ -85,6 +121,26 @@ export const BlogProvider = ({ children }) => {
   };
 
   const modificarArticulo = async (id, datosActualizados) => {
+    if (!usuario) {
+      setError('Debes iniciar sesión');
+      return;
+    }
+
+    // Verificar permisos
+    const articulo = articulos.find(art => art.id === id);
+    if (!articulo) {
+      setError('Artículo no encontrado');
+      return;
+    }
+
+    const esAdmin = usuario.rol === 'admin';
+    const esPropietario = articulo.userId === usuario.uid;
+
+    if (!esAdmin && !esPropietario) {
+      setError('No tienes permiso para modificar este artículo');
+      return;
+    }
+
     setError(null);
     let fotoUrl = datosActualizados.foto;
     if (datosActualizados.archivo) {
@@ -101,6 +157,26 @@ export const BlogProvider = ({ children }) => {
   };
 
   const eliminarArticulo = async (id) => {
+    if (!usuario) {
+      setError('Debes iniciar sesión');
+      return;
+    }
+
+    // Verificar permisos
+    const articulo = articulos.find(art => art.id === id);
+    if (!articulo) {
+      setError('Artículo no encontrado');
+      return;
+    }
+
+    const esAdmin = usuario.rol === 'admin';
+    const esPropietario = articulo.userId === usuario.uid;
+
+    if (!esAdmin && !esPropietario) {
+      setError('No tienes permiso para eliminar este artículo');
+      return;
+    }
+
     setError(null);
     const ref = doc(db, 'articulos', id);
     await deleteDoc(ref);
