@@ -11,6 +11,18 @@ export const Blog = () => {
   const [formData, setFormData] = useState({ nombre: '', precio: '', foto: '' });
   const [archivo, setArchivo] = useState(null);
 
+  // Función para sanitizar inputs y prevenir XSS
+  const sanitizeInput = (input) => {
+    if (typeof input !== 'string') return input;
+    return input
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;')
+      .replace(/\//g, '&#x2F;')
+      .trim();
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -18,16 +30,44 @@ export const Blog = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.nombre || !formData.precio) {
+
+    // Sanitizar inputs
+    const nombreSanitizado = sanitizeInput(formData.nombre);
+    const precioNumerico = parseFloat(formData.precio);
+
+    // Validaciones
+    if (!nombreSanitizado || !formData.precio) {
       setError('Por favor completa nombre y precio');
       return;
     }
 
+    if (nombreSanitizado.length < 3) {
+      setError('El nombre debe tener al menos 3 caracteres');
+      return;
+    }
+
+    if (nombreSanitizado.length > 100) {
+      setError('El nombre es demasiado largo (máximo 100 caracteres)');
+      return;
+    }
+
+    if (isNaN(precioNumerico) || precioNumerico < 0) {
+      setError('El precio debe ser un número válido mayor o igual a 0');
+      return;
+    }
+
+    const datosValidados = {
+      nombre: nombreSanitizado,
+      precio: precioNumerico,
+      foto: formData.foto,
+      archivo
+    };
+
     if (editandoId) {
-      modificarArticulo(editandoId, { ...formData, archivo });
+      modificarArticulo(editandoId, datosValidados);
       setEditandoId(null);
     } else {
-      agregarArticulo({ ...formData, archivo });
+      agregarArticulo(datosValidados);
     }
     setFormData({ nombre: '', precio: '', foto: '' });
     setArchivo(null);
